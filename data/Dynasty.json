@@ -1,0 +1,133 @@
+{"dynasty":
+  [
+    {
+      "dynasty_id": "A",
+      "name": "先秦",
+      "another_name": ["夏","夏朝", "商", "商朝", "殷", "殷商", "周", "周朝", "东周", "西周", "春秋", "战国", "春秋战国"],
+      "start_year": -2070,
+      "end_year": -221,
+      "note": "中国历史最早有文字记载的时期，涵盖夏商周三代及春秋战国"
+    },
+    {
+      "dynasty_id": "B",
+      "name": "秦",
+      "another_name": ["秦朝", "大秦"],
+      "start_year": -221,
+      "end_year": -206,
+      "note": "中国第一个大一统王朝，首创皇帝制度"
+    },
+    {
+      "dynasty_id": "C",
+      "name": "汉",
+      "another_name": ["汉朝","西汉", "东汉"],
+      "start_year": -202,
+      "end_year": 220,
+      "note": "分西汉（前202-8）和东汉（25-220），史称强汉"
+    },
+    {
+      "dynasty_id": "D",
+      "name": "魏晋",
+      "another_name": ["三国", "曹魏", "晋", "西晋", "东晋", "魏", "蜀", "吴"],
+      "start_year": 220,
+      "end_year": 420,
+      "note": "包含三国（魏蜀吴）和西晋（265-316）"
+    },
+    {
+      "dynasty_id": "E",
+      "name": "南北朝",
+      "another_name": ["南朝", "北朝", "宋齐梁陈", "北魏东魏西魏北齐北周", "北魏","北齐", "北周", "南朝宋", "南朝齐", "南朝梁", "南朝陈", "梁", "陈"],
+      "start_year": 420,
+      "end_year": 589,
+      "note": "南朝（420-589）与北朝（386-581）对峙时期"
+    },
+
+    {
+      "dynasty_id": "F",
+      "name": "隋",
+      "another_name": ["隋朝", "大隋"],
+      "start_year": 581,
+      "end_year": 619,
+      "note": "结束南北朝分裂，开创科举制度"
+    },
+    {
+      "dynasty_id": "G",
+      "name": "唐",
+      "another_name": ["唐朝", "大唐", "盛唐", "初唐", "晚唐"],
+      "start_year": 618,
+      "end_year": 907,
+      "note": "中国最强盛朝代之一，诗歌黄金时代"
+    },
+    {
+      "dynasty_id": "H",
+      "name": "五代",
+      "another_name": ["五代十国","后梁", "后唐", "后晋", "后汉", "后周", "南唐"],
+      "start_year": 907,
+      "end_year": 960,
+      "note": "中原地区五个短命王朝的更迭"
+    },
+    {
+      "dynasty_id": "I",
+      "name": "宋",
+      "another_name": ["宋朝","北宋", "南宋", "大宋"],
+      "start_year": 960,
+      "end_year": 1279,
+      "note": "分北宋（960-1127）和南宋（1127-1279）"
+    },
+    {
+      "dynasty_id": "J",
+      "name": "金",
+      "another_name": ["金朝", "大金", "金国"],
+      "start_year": 1115,
+      "end_year": 1234,
+      "note": "女真族建立，与南宋对峙"
+    },
+    {
+      "dynasty_id": "K",
+      "name": "辽",
+      "another_name": ["辽朝", "契丹", "辽国"],
+      "start_year": 907,
+      "end_year": 1125,
+      "note": "契丹族建立，与北宋长期对峙"
+    },
+    {
+      "dynasty_id": "L",
+      "name": "元",
+      "another_name": ["元朝", "大元", "蒙古帝国"],
+      "start_year": 1271,
+      "end_year": 1368,
+      "note": "蒙古族建立，中国首次被少数民族完全统治"
+    },
+    {
+      "dynasty_id": "M",
+      "name": "明",
+      "another_name": ["明朝", "大明"],
+      "start_year": 1368,
+      "end_year": 1644,
+      "note": "汉人最后一个封建王朝，郑和下西洋时期"
+    },
+    {
+      "dynasty_id": "N",
+      "name": "清",
+      "another_name": ["清朝", "大清", "满清"],
+      "start_year": 1616,
+      "end_year": 1912,
+      "note": "中国最后一个封建王朝，1644年入关"
+    },
+    {
+      "dynasty_id": "O",
+      "name": "近代",
+      "another_name": ["晚清", "民国前期", "民国"],
+      "start_year": 1840,
+      "end_year": 1919,
+      "note": "从鸦片战争到五四运动，中国半殖民地化时期，朝代更迭时期，一般考虑作者鼎盛时期或诗作时期"
+    },
+    {
+      "dynasty_id": "P",
+      "name": "现当代",
+      "another_name": ["现代", "当代", "新中国"],
+      "start_year": 1919,
+      "end_year": null,
+      "note": "从五四运动至今，包含中华人民共和国时期"
+    }
+  ]
+}
