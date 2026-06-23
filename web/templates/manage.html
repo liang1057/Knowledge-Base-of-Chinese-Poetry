@@ -1,0 +1,506 @@
+{% extends "base.html" %}
+
+{% block title %}诗词库 - 内容管理{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-container">
+    <h2 class="page-title">
+        <i class="fas fa-cog"></i> 内容管理
+    </h2>
+    
+    <div class="row">
+        <!-- 作者管理 -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-edit"></i> 作者管理
+                    <button class="btn btn-sm btn-primary float-end" onclick="showAddAuthorModal()">
+                        <i class="fas fa-plus"></i> 添加作者
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- 作者列表 -->
+                    <div class="mb-3">
+                        <label class="form-label">选择朝代：</label>
+                        <select class="form-select" id="authorDynasty" onchange="loadAuthors()">
+                            <option value="">全部朝代</option>
+                            {% for d in dynasties %}
+                            <option value="{{ d.dynasty_id }}">{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="author-list" id="authorList">
+                        <div class="text-muted text-center">请选择朝代查看作者</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 诗词管理 -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-scroll"></i> 诗词管理
+                    <button class="btn btn-sm btn-primary float-end" onclick="showAddPoemModal()">
+                        <i class="fas fa-plus"></i> 添加诗词
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- 诗词列表 -->
+                    <div class="mb-3">
+                        <label class="form-label">选择作者：</label>
+                        <select class="form-select" id="poemAuthor" onchange="loadPoems()">
+                            <option value="">请先选择朝代和作者</option>
+                        </select>
+                    </div>
+                    <div class="poem-list" id="poemList">
+                        <div class="text-muted text-center">请选择作者查看诗词</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加作者 Modal -->
+<div class="modal fade" id="addAuthorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus"></i> 添加作者</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">朝代 *</label>
+                    <select class="form-select" id="newAuthorDynasty" required>
+                        <option value="">请选择朝代</option>
+                        {% for d in dynasties %}
+                        <option value="{{ d.dynasty_id }}">{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">姓名 *</label>
+                    <input type="text" class="form-control" id="newAuthorName" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">字（可选）</label>
+                    <input type="text" class="form-control" id="newAuthorCourtesy">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">号（可选）</label>
+                    <input type="text" class="form-control" id="newAuthorArt">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">简介</label>
+                    <textarea class="form-control" id="newAuthorBio" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="addAuthor()">
+                    <i class="fas fa-save"></i> 保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑作者 Modal -->
+<div class="modal fade" id="editAuthorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> 编辑作者</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editAuthorId">
+                <div class="mb-3">
+                    <label class="form-label">姓名</label>
+                    <input type="text" class="form-control" id="editAuthorName" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">字</label>
+                    <input type="text" class="form-control" id="editAuthorCourtesy">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">号</label>
+                    <input type="text" class="form-control" id="editAuthorArt">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">简介</label>
+                    <textarea class="form-control" id="editAuthorBio" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="deleteAuthor()">
+                    <i class="fas fa-trash"></i> 删除
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="updateAuthor()">
+                    <i class="fas fa-save"></i> 保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加诗词 Modal -->
+<div class="modal fade" id="addPoemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> 添加诗词</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">作者 *</label>
+                    <select class="form-select" id="newPoemAuthor" required>
+                        <option value="">请选择作者</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">标题 *</label>
+                    <input type="text" class="form-control" id="newPoemTitle" required placeholder="请输入诗词标题">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">正文</label>
+                    <textarea class="form-control" id="newPoemContent" rows="4" placeholder="请输入诗词正文"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">赏析</label>
+                    <textarea class="form-control" id="newPoemAppreciation" rows="3" placeholder="请输入赏析内容"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="addPoem()">
+                    <i class="fas fa-save"></i> 保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认 Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> 确认删除</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">确定要删除吗？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i> 确认删除
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 全局变量
+let currentDeleteType = '';
+let currentDeleteId = '';
+
+// 加载作者列表
+function loadAuthors() {
+    const dynastyId = $('#authorDynasty').val();
+    if (!dynastyId) {
+        $('#authorList').html('<div class="text-muted text-center">请选择朝代查看作者</div>');
+        return;
+    }
+    
+    $.get('/api/authors/' + dynastyId, function(authors) {
+        if (authors.length === 0) {
+            $('#authorList').html('<div class="text-muted text-center">该朝代暂无作者</div>');
+            return;
+        }
+        
+        let html = '<div class="list-group">';
+        authors.forEach(function(author) {
+            html += `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${author.name}</strong>
+                        <small class="text-muted ms-2">ID: ${author.id}</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showEditAuthorModal('${author.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            `;
+        });
+        html += '</div>';
+        $('#authorList').html(html);
+        
+        // 同时更新诗词管理的作者下拉框
+        updatePoemAuthorSelect(dynastyId);
+    });
+}
+
+// 加载诗词列表
+function loadPoems() {
+    const authorId = $('#poemAuthor').val();
+    if (!authorId) {
+        $('#poemList').html('<div class="text-muted text-center">请选择作者查看诗词</div>');
+        return;
+    }
+    
+    $.get('/api/poems/' + authorId, function(poems) {
+        if (poems.length === 0) {
+            $('#poemList').html('<div class="text-muted text-center">该作者暂无诗词</div>');
+            return;
+        }
+        
+        let html = '<div class="list-group">';
+        poems.forEach(function(poem) {
+            html += `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${poem.title}</strong>
+                        <small class="text-muted ms-2">ID: ${poem.poem_id}</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="confirmDeletePoem('${poem.poem_id}', '${poem.title}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        });
+        html += '</div>';
+        $('#poemList').html(html);
+    });
+}
+
+// 更新诗词管理的作者下拉框
+function updatePoemAuthorSelect(dynastyId) {
+    $.get('/api/authors/' + dynastyId, function(authors) {
+        let options = '<option value="">请选择作者</option>';
+        authors.forEach(function(author) {
+            options += `<option value="${author.id}">${author.name}</option>`;
+        });
+        $('#poemAuthor').html(options);
+    });
+}
+
+// 显示添加作者 Modal
+function showAddAuthorModal() {
+    $('#newAuthorName').val('');
+    $('#newAuthorCourtesy').val('');
+    $('#newAuthorArt').val('');
+    $('#newAuthorBio').val('');
+    var modal = new bootstrap.Modal($('#addAuthorModal'));
+    modal.show();
+}
+
+// 添加作者
+function addAuthor() {
+    const dynastyId = $('#newAuthorDynasty').val();
+    const name = $('#newAuthorName').val().trim();
+    
+    if (!dynastyId || !name) {
+        alert('请填写必填项');
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/author/add',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            dynasty_id: dynastyId,
+            name: name,
+            courtesy_name: $('#newAuthorCourtesy').val(),
+            art_name: $('#newAuthorArt').val(),
+            bio: $('#newAuthorBio').val()
+        }),
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('添加成功！作者ID: ' + data.author_id);
+                bootstrap.Modal.getInstance($('#addAuthorModal')).hide();
+                loadAuthors();
+            }
+        },
+        error: function() {
+            alert('添加失败');
+        }
+    });
+}
+
+// 显示编辑作者 Modal
+function showEditAuthorModal(authorId) {
+    $.get('/api/author/' + authorId, function(data) {
+        const author = data.author;
+        $('#editAuthorId').val(author.author_id);
+        $('#editAuthorName').val(author.name);
+        $('#editAuthorCourtesy').val(author.courtesy_name || '');
+        $('#editAuthorArt').val(author.art_name || '');
+        $('#editAuthorBio').val(author.bio || '');
+        var modal = new bootstrap.Modal($('#editAuthorModal'));
+        modal.show();
+    });
+}
+
+// 更新作者
+function updateAuthor() {
+    const authorId = $('#editAuthorId').val();
+    const name = $('#editAuthorName').val().trim();
+    
+    if (!name) {
+        alert('姓名不能为空');
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/author/edit/' + authorId,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: name,
+            courtesy_name: $('#editAuthorCourtesy').val(),
+            art_name: $('#editAuthorArt').val(),
+            bio: $('#editAuthorBio').val()
+        }),
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('保存成功');
+                bootstrap.Modal.getInstance($('#editAuthorModal')).hide();
+                loadAuthors();
+            }
+        },
+        error: function() {
+            alert('保存失败');
+        }
+    });
+}
+
+// 删除作者
+function deleteAuthor() {
+    const authorId = $('#editAuthorId').val();
+    if (!confirm('确定要删除该作者吗？这将同时删除该作者的所有诗词！')) {
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/author/delete/' + authorId,
+        method: 'POST',
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('删除成功');
+                bootstrap.Modal.getInstance($('#editAuthorModal')).hide();
+                loadAuthors();
+            }
+        },
+        error: function() {
+            alert('删除失败');
+        }
+    });
+}
+
+// 显示添加诗词 Modal
+function showAddPoemModal() {
+    // 初始化作者列表
+    const dynastyId = $('#authorDynasty').val();
+    if (!dynastyId) {
+        alert('请先在左侧"作者管理"中选择一个朝代');
+        return;
+    }
+    
+    updatePoemAuthorSelectForAdd(dynastyId);
+    
+    $('#newPoemTitle').val('');
+    $('#newPoemContent').val('');
+    $('#newPoemAppreciation').val('');
+    var modal = new bootstrap.Modal($('#addPoemModal'));
+    modal.show();
+}
+
+// 更新添加诗词 Modal 的作者下拉框
+function updatePoemAuthorSelectForAdd(dynastyId) {
+    $.get('/api/authors/' + dynastyId, function(authors) {
+        let options = '<option value="">请选择作者</option>';
+        authors.forEach(function(author) {
+            options += `<option value="${author.id}">${author.name}</option>`;
+        });
+        $('#newPoemAuthor').html(options);
+    });
+}
+
+// 添加诗词
+function addPoem() {
+    const authorId = $('#newPoemAuthor').val();
+    const title = $('#newPoemTitle').val().trim();
+    
+    if (!authorId || !title) {
+        alert('请填写必填项');
+        return;
+    }
+    
+    $.ajax({
+        url: '/api/poem/add',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            author_id: authorId,
+            title: title,
+            content: $('#newPoemContent').val(),
+            appreciation: $('#newPoemAppreciation').val()
+        }),
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('添加成功！诗词ID: ' + data.poem_id);
+                bootstrap.Modal.getInstance($('#addPoemModal')).hide();
+                loadPoems();
+            }
+        },
+        error: function() {
+            alert('添加失败');
+        }
+    });
+}
+
+// 确认删除诗词
+function confirmDeletePoem(poemId, title) {
+    currentDeleteType = 'poem';
+    currentDeleteId = poemId;
+    $('#deleteMessage').text('确定要删除诗词《' + title + '》吗？');
+    var modal = new bootstrap.Modal($('#deleteConfirmModal'));
+    modal.show();
+}
+
+// 删除诗词
+function deletePoem() {
+    $.ajax({
+        url: '/api/poem/delete/' + currentDeleteId,
+        method: 'POST',
+        success: function(data) {
+            if (data.status === 'success') {
+                alert('删除成功');
+                bootstrap.Modal.getInstance($('#deleteConfirmModal')).hide();
+                loadPoems();
+            }
+        },
+        error: function() {
+            alert('删除失败');
+        }
+    });
+}
+
+// 绑定删除确认按钮事件
+$('#confirmDeleteBtn').click(function() {
+    if (currentDeleteType === 'poem') {
+        deletePoem();
+    }
+});
+</script>
+{% endblock %}

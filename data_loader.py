@@ -88,18 +88,20 @@ def clean_poems(raw_file, cleaned_file):
     for d in dynasty_list:
         dynasty_poem_dict[d] = {}
 
-    poem_format_dict = None # 诗词格式字典
+    poem_format_dict = None # 诗词格律字典
     with open('./data/Poem_Format.json', 'r', encoding='utf-8') as f:
         poem_format_dict = json.load(f)
 
     with open(raw_file, 'r', encoding='utf-8') as f:
         raw_poems = json.load(f)
 
-    for dynasty_key in raw_poems.keys():   # 原始数据 *_key 是未清洗的
+    for dynasty_key in raw_poems.keys():   # 原始数据 *_key 可能是未清洗的
         dynasty = dynasty_key.strip()
         for author_key in raw_poems[dynasty_key].keys():  # 原始数据 *_key 是未清洗的
-            for poem_key in raw_poems[dynasty][author_key]: # 原始数据 *_key 是未清洗的
-                poem = raw_poems[dynasty][author_key][poem_key]
+            #for poem_key in raw_poems[dynasty][author_key]: # 原始数据 *_key 是未清洗的
+            poem_list = raw_poems[dynasty_key][author_key]
+            for j, poem in enumerate(poem_list):
+                #poem = raw_poems[dynasty][author_key][poem_key]
                 # 诗词元数据清洗
                 # 诗词格式
                 author = poem['author'].strip()
@@ -108,7 +110,7 @@ def clean_poems(raw_file, cleaned_file):
                 dynasty_id = dynasty_id_dict[dynasty]  # poem[2].strip() # make_dynasty_id(dynasty)
                 author_id = f'{dynasty_id}-{len(dynasty_poem_dict[dynasty]) + 1}' # 作者ID
                 tmp_content = poem['content'].replace('\r\n', '\n').replace('\r', '\n').replace('[', '').replace(']', '').replace('&nbsp', '')
-                for i_num in range(0, 10):
+                for i_num in range(0, 10):  # 去掉数字（这是原来的注释）
                     tmp_content = tmp_content.replace(f'{i_num}', '')
 
                 if dynasty not in ['近代', '现当代']:  # 散文诗暂时先不替换，先按时代卡
@@ -135,7 +137,6 @@ def clean_poems(raw_file, cleaned_file):
                     "dynasty": dynasty,
                     "dynasty_id": dynasty_id,
                     "content": content_sc_list,
-                    # "content_TC": content_tc,  # 繁体中文的不需要
                     "discription": discription,
                     "format": poem_format
                 }
@@ -143,11 +144,11 @@ def clean_poems(raw_file, cleaned_file):
                 # 将结构化的内容放入dict中，方便后面转换成json
                 if dynasty in dynasty_poem_dict:
                     if author in dynasty_poem_dict[dynasty]:
-                        dynasty_poem_dict[dynasty][author][f'{author}-{title}-{content_title}'] = poem_data
+                        dynasty_poem_dict[dynasty][author].append(poem_data)
                     else:
-                        dynasty_poem_dict[dynasty][author] = {f'{author}-{title}-{content_title}': poem_data}
+                        dynasty_poem_dict[dynasty][author] = [poem_data]
                 else:
-                    dynasty_poem_dict[dynasty] = {author: {f'{author}-{title}-{content_title}': poem_data}}
+                    dynasty_poem_dict[dynasty] = {author: [poem_data]}
 
     json_text = json.dumps(dynasty_poem_dict, ensure_ascii=False, indent=4) # 将字典转换为 JSON 字符串, 并确保非 ASCII 字符被正确处理, 并缩进为4个空格
 
@@ -158,15 +159,18 @@ def clean_poems(raw_file, cleaned_file):
 
 # ========== 数据加载 ==========
 # 从json文件中加载所有诗词到内存中。
-def load_all_poems():
+def load_all_poems(filename='./data/Poetry_China_all.json'):
     '''
     从总文件加载所有诗词到内存中。
     :return: 所有诗词的字典
     '''
-    with open('./data/Poetry_China_all.json', 'r', encoding='utf-8') as f:
+    if os.path.exists(filename) == False:
+        return {}
+
+    with open(filename, 'r', encoding='utf-8') as f:
         all_poems = json.load(f)
 
-    # 删除作者和朝代
+    # 排除指定的作者和朝代
     for dynasty in list(all_poems.keys()):
         if dynasty in dynasty_drop:
             all_poems.pop(dynasty) # 删除朝代
@@ -300,6 +304,8 @@ if __name__ == '__main__':
     all_poems = load_all_poems()
     print("收录诗词的朝代")
     print(all_poems.keys())
+
+    clean_poems(raw_file='./data/Poetry_China_all_(rawdata).json', cleaned_file='./data/Poetry_China_all.json')
 
     # 统计每个朝代的诗词数量
     author_count, poem_count = 0, 0

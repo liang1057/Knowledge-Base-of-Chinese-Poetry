@@ -1,0 +1,430 @@
+/* ==================== 基础样式 ==================== */
+
+:root {
+    --primary-color: #8b4513;      /* 古典棕色 */
+    --secondary-color: #d4a574;    /* 浅棕色 */
+    --accent-color: #c41e3a;       /* 中国红 */
+    --bg-color: #faf8f5;           /* 米白色 */
+    --text-color: #333333;
+    --border-color: #e0d5c7;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+/* ==================== 导航栏 ==================== */
+
+.navbar {
+    background: linear-gradient(135deg, var(--primary-color), #6b3410) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.navbar-brand i {
+    margin-right: 8px;
+    color: var(--accent-color);
+}
+
+.nav-link {
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 5px;
+}
+
+/* ==================== 统计栏 ==================== */
+
+.stats-bar {
+    background-color: #fff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 8px 0;
+    font-size: 0.9rem;
+}
+
+.stat-item {
+    margin-right: 30px;
+    color: #666;
+}
+
+.stat-item i {
+    color: var(--primary-color);
+    margin-right: 5px;
+}
+
+/* ==================== 主容器 ==================== */
+
+.main-container {
+    height: calc(100vh - 110px);
+    padding: 10px;
+}
+
+.row.h-100 > [class*="col-"] {
+    height: 100%;
+}
+
+/* ==================== 左侧固定面板（200px） ==================== */
+
+.left-panel-fixed {
+    width: 200px;
+    min-width: 200px;
+    height: 100%;
+    padding-right: 10px;
+}
+
+.left-panel-fixed .card {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.left-panel-fixed .card-header {
+    background: linear-gradient(135deg, #f5f0eb, #fff);
+    border-bottom: 1px solid var(--border-color);
+    font-weight: bold;
+    color: var(--primary-color);
+    padding: 8px 12px;
+}
+
+.left-panel-fixed .card-header i {
+    margin-right: 5px;
+}
+
+.left-panel-fixed .card-body {
+    overflow: auto;
+    background-color: #fff;
+}
+
+/* ==================== 卡片样式 ==================== */
+
+.card {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f5f0eb, #fff);
+    border-bottom: 1px solid var(--border-color);
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.card-header i {
+    margin-right: 8px;
+}
+
+/* ==================== 树形控件 ==================== */
+
+#dynastyTree {
+    font-size: 0.9rem;
+}
+
+.jstree-node {
+    margin: 2px 0;
+}
+
+.jstree-themeicon {
+    color: var(--primary-color) !important;
+}
+
+.jstree-hovered {
+    background-color: var(--secondary-color) !important;
+    border-radius: 5px;
+}
+
+.jstree-clicked {
+    background-color: var(--accent-color) !important;
+    color: white !important;
+    border-radius: 5px;
+}
+
+/* ==================== 诗词列表 ==================== */
+
+#poemListContainer {
+    background-color: #fff;
+}
+
+.poem-list-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.poem-list-item:hover {
+    background-color: #faf8f5;
+}
+
+.poem-list-item.active {
+    background-color: var(--secondary-color);
+    border-left: 3px solid var(--primary-color);
+}
+
+.poem-list-item .poem-item-title {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 2px;
+}
+
+.poem-list-item .poem-item-meta {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+#currentAuthorHint {
+    font-weight: normal;
+}
+
+/* ==================== 中部面板 - 诗词展示 ==================== */
+
+.center-panel .card-body {
+    overflow: auto;
+}
+
+.poem-info {
+    text-align: center;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.poem-title {
+    color: var(--primary-color);
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-family: "KaiTi", "STKaiti", "楷体", serif;
+}
+
+.poem-author {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.poem-author::before {
+    content: "—— ";
+}
+
+.poem-author::after {
+    content: " ——";
+}
+
+.poem-section {
+    margin-bottom: 15px;
+}
+
+.section-label {
+    display: block;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.section-label i {
+    margin-right: 5px;
+}
+
+.poem-content {
+    font-size: 1.1rem;
+    line-height: 2;
+    font-family: "KaiTi", "STKaiti", "楷体", serif;
+    background-color: #fffbf5;
+    border: 1px solid var(--border-color);
+    white-space: pre-wrap;  /* 保留换行和空格 */
+}
+
+.poem-appreciation {
+    font-size: 1rem;
+    line-height: 1.8;
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    white-space: pre-wrap;  /* 保留换行 */
+}
+
+/* ==================== 属性表 ==================== */
+
+.attr-panel .card-body {
+    overflow: auto;
+}
+
+.attribute-table {
+    font-size: 0.9rem;
+}
+
+.attribute-table th {
+    width: 35%;
+    color: #666;
+    font-weight: normal;
+    background-color: #faf8f5;
+    border-color: var(--border-color);
+}
+
+.attribute-table td {
+    border-color: var(--border-color);
+}
+
+.attr-input {
+    width: 100%;
+    border: 1px solid transparent;
+    background-color: transparent;
+    padding: 5px 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.attr-input:hover {
+    border-color: var(--border-color);
+    background-color: #fff;
+}
+
+.attr-input:focus {
+    border-color: var(--primary-color);
+    background-color: #fff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(139, 69, 19, 0.2);
+}
+
+.attr-display {
+    color: #666;
+}
+
+/* ==================== 空状态提示 ==================== */
+
+.empty-hint {
+    text-align: center;
+    color: #999;
+    padding: 40px 20px;
+}
+
+.empty-hint i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: #ddd;
+}
+
+/* ==================== 页面标题 ==================== */
+
+.page-title {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.page-title i {
+    margin-right: 10px;
+}
+
+/* ==================== Footer ==================== */
+
+.footer {
+    background-color: #fff;
+    border-top: 1px solid var(--border-color);
+    padding: 15px 0;
+    text-align: center;
+    margin-top: auto;
+}
+
+/* ==================== 滚动条美化 ==================== */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* ==================== 保存按钮 ==================== */
+
+#saveSection button {
+    transition: all 0.3s ease;
+}
+
+#saveSection button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+}
+
+/* ==================== 响应式调整 ==================== */
+
+@media (max-width: 1200px) {
+    .left-panel-fixed {
+        width: 180px;
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 992px) {
+    .main-container {
+        height: auto;
+    }
+    
+    .left-panel-fixed,
+    .row.h-100 > [class*="col-"] {
+        height: auto;
+        width: 100%;
+        min-width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .left-panel-fixed {
+        height: 300px;
+    }
+}
+
+/* ==================== 按钮样式 ==================== */
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #6b3410;
+    border-color: #6b3410;
+}
+
+/* ==================== Modal 样式 ==================== */
+
+.modal-header {
+    background: linear-gradient(135deg, #f5f0eb, #fff);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+    color: var(--primary-color);
+    font-weight: bold;
+}

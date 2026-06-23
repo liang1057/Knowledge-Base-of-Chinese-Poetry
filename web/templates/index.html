@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}诗词库 - 首页{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-container">
+    <div class="row h-100" >
+        <!-- 左侧：朝代-作者树形导航（200px固定宽度） -->
+        <div class="left-panel-fixed" style="width: 200px;">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-sitemap"></i> 朝代-作者</span>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" onclick="expandAll()" title="全部展开">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="collapseAll()" title="全部折叠">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-2 overflow-auto">
+                    <div id="dynastyTree"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 中间：诗词列表 + 诗词详情 -->
+        <div class="col-md-4 center-panel" style="width: 350px;">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-list"></i> 诗词列表
+                        <small class="text-muted" id="currentAuthorHint">-</small>
+                    </span>
+                    <button class="btn btn-sm btn-primary" onclick="showAddPoemModal()" id="btnAddPoem" disabled>
+                        <i class="fas fa-plus"></i> 添加诗词
+                    </button>
+                </div>
+                <div class="card-body p-2 overflow-auto" id="poemListContainer">
+                    <div class="empty-hint">
+                        <i class="fas fa-hand-pointer"></i>
+                        <p>请在左侧选择一位诗人</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧：诗词详情 + 属性表 -->
+        <div class="col-md-5 right-panel">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-book-open"></i> 诗词详情
+                    </span>
+                    <span class="badge bg-secondary" id="poemDynasty">-</span>
+                </div>
+                <div class="card-body overflow-auto">
+                    <!-- 诗词信息 -->
+                    <div class="poem-info mb-3">
+                        <h3 class="poem-title" id="poemTitle">请选择一首诗词</h3>
+                        <p class="poem-author" id="poemAuthor">-</p>
+                    </div>
+                    
+                    <!-- 诗词正文（支持换行显示） -->
+                    <div class="poem-section">
+                        <label class="section-label">
+                            <i class="fas fa-pen"></i> 正文
+                        </label>
+                        <textarea class="form-control poem-content" id="poemContent" rows="10" 
+                                  placeholder="选择诗词后显示内容..."></textarea>
+                    </div>
+                    
+                    <!-- 赏析 -->
+                    <div class="poem-section">
+                        <label class="section-label">
+                            <i class="fas fa-comment"></i> 赏析
+                        </label>
+                        <textarea class="form-control poem-appreciation" id="poemAppreciation" rows="5"
+                                  placeholder="赏析内容..."></textarea>
+                    </div>
+                    
+                    <!-- 翻译 -->
+                    <div class="poem-section">
+                        <label class="section-label">
+                            <i class="fas fa-language"></i> 翻译
+                        </label>
+                        <textarea class="form-control" id="poemTranslation" rows="4"
+                                  placeholder="翻译内容..."></textarea>
+                    </div>
+                    
+                    <!-- 保存按钮 -->
+                    <div class="text-center mt-3" id="saveSection" style="display: none;">
+                        <button class="btn btn-primary btn-lg" onclick="savePoem()">
+                            <i class="fas fa-save"></i> 保存修改
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 最右侧：属性表 -->
+        <div class="col-md-3 attr-panel">
+            <div class="card h-100">
+                <div class="card-header">
+                    <i class="fas fa-list-ul"></i> 诗词属性
+                </div>
+                <div class="card-body overflow-auto">
+                    <table class="table table-sm attribute-table">
+                        <tbody id="attrTable">
+                            <tr>
+                                <th>体裁</th>
+                                <td><input type="text" class="attr-input" id="attrGenre" data-field="genre"></td>
+                            </tr>
+                            <tr>
+                                <th>形式</th>
+                                <td><input type="text" class="attr-input" id="attrForm" data-field="form"></td>
+                            </tr>
+                            <tr>
+                                <th>韵律</th>
+                                <td><input type="text" class="attr-input" id="attrMeter" data-field="meter"></td>
+                            </tr>
+                            <tr>
+                                <th>主题</th>
+                                <td><input type="text" class="attr-input" id="attrTheme" data-field="theme"></td>
+                            </tr>
+                            <tr>
+                                <th>风格</th>
+                                <td><input type="text" class="attr-input" id="attrStyle" data-field="style"></td>
+                            </tr>
+                            <tr>
+                                <th>情感</th>
+                                <td><input type="text" class="attr-input" id="attrEmotion" data-field="emotion"></td>
+                            </tr>
+                            <tr>
+                                <th>意象</th>
+                                <td><input type="text" class="attr-input" id="attrImagery" data-field="imagery"></td>
+                            </tr>
+                            <tr>
+                                <th>用典</th>
+                                <td><input type="text" class="attr-input" id="attrAllusions" data-field="allusions"></td>
+                            </tr>
+                            <tr>
+                                <th>关键词</th>
+                                <td><input type="text" class="attr-input" id="attrKeywords" data-field="keywords"></td>
+                            </tr>
+                            <tr>
+                                <th>季节</th>
+                                <td><input type="text" class="attr-input" id="attrSeason" data-field="season"></td>
+                            </tr>
+                            <tr>
+                                <th>节日</th>
+                                <td><input type="text" class="attr-input" id="attrFestival" data-field="festival"></td>
+                            </tr>
+                            <tr>
+                                <th>涉及地点</th>
+                                <td><input type="text" class="attr-input" id="attrPlaces" data-field="places_involved"></td>
+                            </tr>
+                            <tr>
+                                <th>涉及人物</th>
+                                <td><input type="text" class="attr-input" id="attrPeople" data-field="people_involved"></td>
+                            </tr>
+                            <tr>
+                                <th>创作背景</th>
+                                <td><input type="text" class="attr-input" id="attrBackground" data-field="background"></td>
+                            </tr>
+                            <tr>
+                                <th>历史背景</th>
+                                <td><input type="text" class="attr-input" id="attrHistoricalContext" data-field="historical_context"></td>
+                            </tr>
+                            <tr>
+                                <th>行数</th>
+                                <td><span class="attr-display" id="attrLineCount">-</span></td>
+                            </tr>
+                            <tr>
+                                <th>字数</th>
+                                <td><span class="attr-display" id="attrCharCount">-</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加诗词 Modal -->
+<div class="modal fade" id="addPoemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> 添加诗词</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="newPoemAuthorId">
+                <input type="hidden" id="newPoemDynastyId">
+                <div class="mb-3">
+                    <label class="form-label">朝代</label>
+                    <input type="text" class="form-control" id="newPoemDynastyName" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">作者</label>
+                    <input type="text" class="form-control" id="newPoemAuthorName" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">标题 *</label>
+                    <input type="text" class="form-control" id="newPoemTitle" required placeholder="请输入诗词标题">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">正文</label>
+                    <textarea class="form-control" id="newPoemContent" rows="4" placeholder="请输入诗词正文"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">赏析</label>
+                    <textarea class="form-control" id="newPoemAppreciation" rows="3" placeholder="请输入赏析内容"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="addPoem()">
+                    <i class="fas fa-save"></i> 保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/tree.js') }}"></script>
+<script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+{% endblock %}
