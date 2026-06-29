@@ -1,0 +1,117 @@
+/* ==================== 扩展样式 - KBCP v2 ==================== */
+/* 继承 web/static/css/style.css 的古典配色 */
+
+:root {
+    --primary: #8b4513;
+    --secondary: #d4a574;
+    --accent: #c41e3a;
+    --bg: #faf8f5;
+    --border: #e0d5c7;
+}
+
+/* 树控件全覆盖 */
+#dynastyTree { font-size: 13px; }
+.jstree-node { margin: 1px 0; }
+.jstree-hovered { background: var(--secondary) !important; border-radius: 4px; }
+.jstree-clicked { background: var(--primary) !important; color: #fff !important; border-radius: 4px; }
+.jstree-icon { color: var(--primary); }
+
+/* 标签 */
+.tag-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #f5f0eb;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin: 3px;
+    font-size: 13px;
+    color: #5a3e2b;
+}
+.tag-badge .tag-remove {
+    margin-left: 4px;
+    cursor: pointer;
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 14px;
+}
+.tag-badge .tag-remove:hover { opacity: 0.6; }
+
+.tag-category-label {
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: bold;
+    margin-top: 8px;
+    margin-bottom: 2px;
+}
+
+/* 文本域编辑 */
+textarea.form-control-sm { font-size: 14px; }
+
+/* 标签选择器 Modal 样式 */
+.tag-selector-category { margin-bottom: 12px; }
+.tag-selector-category h6 { color: var(--primary); font-size: 14px; margin-bottom: 4px; }
+/* 每个选项之间空一个字的间距 */
+.tag-selector-category .d-flex.flex-wrap > div {
+    margin-right: 1em;
+    margin-bottom: 4px;
+}
+.tag-selector-category label {
+    display: inline-block;
+    margin: 2px 4px;
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s;
+}
+.tag-selector-category label:hover { background: #f5f0eb; }
+.tag-selector-category input:checked + label {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+.tag-selector-category input { display: none; }
+
+/* 诗词详情: 正文文本框弹性拉伸 */
+.col-detail .panel-body { display: flex; flex-direction: column; }
+/*#poemDetail { display: flex; flex-direction: column; flex: 1; height: 100%; }*/
+/*#poemDetail .mb-2:first-of-type { flex: 1; display: flex; flex-direction: column; min-height: 0; }*/
+/*#poemDetail .mb-2:first-of-type textarea { flex: 1; resize: vertical; min-height: 120px; }*/
+/* 诗词详情: 弹性布局撑满纵向空间 */
+.col-detail .panel-body {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 16px;
+}
+#poemDetail {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+#poemContent {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 640px;
+    height: 100%;
+}
+
+/* 赏析固定稍大 */
+#poemAppreciation { min-height: 80px; }
+/* 翻译固定稍小 */
+#poemTranslation { min-height: 160px; }
+/* 底部保存按钮区域 */
+#saveSection { flex-shrink: 0; }
+
+/* 管理页 */
+.admin-section { margin-bottom: 20px; }
+
+/* 响应式 */
+@media (max-width: 1200px) {
+    .col-tree { width: 180px; min-width: 180px; }
+    .col-list { width: 240px; min-width: 200px; }
+    .col-tags { width: 220px; min-width: 200px; }
+}

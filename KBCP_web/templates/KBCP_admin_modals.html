@@ -1,0 +1,213 @@
+<!-- 添加/编辑朝代 Modal -->
+<div class="modal fade" id="dynastyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dynastyModalTitle"><i class="fas fa-landmark"></i> 添加朝代</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editDynastyId">
+                <div class="mb-2">
+                    <label class="form-label">名称 *</label>
+                    <input type="text" class="form-control" id="dynastyName">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">别名 (JSON 数组)</label>
+                    <input type="text" class="form-control" id="dynastyAnotherName" placeholder='["夏","商","周"]'>
+                </div>
+                <div class="row mb-2">
+                    <div class="col">
+                        <label class="form-label">起始年</label>
+                        <input type="number" class="form-control" id="dynastyStart">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">结束年</label>
+                        <input type="number" class="form-control" id="dynastyEnd">
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">备注</label>
+                    <textarea class="form-control" id="dynastyNote" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveDynasty()"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加/编辑作者 Modal -->
+<div class="modal fade" id="authorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="authorModalTitle"><i class="fas fa-user-plus"></i> 添加作者</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editAuthorId">
+                <div class="mb-2">
+                    <label class="form-label">朝代 *</label>
+                    <select class="form-select" id="authorDynasty">
+                        <option value="">请选择</option>
+                        {% for d in dynasties %}
+                        <option value="{{ d.dynasty_id }}">{{ d.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">姓名 *</label>
+                    <input type="text" class="form-control" id="authorName">
+                </div>
+                <div class="row mb-2">
+                    <div class="col">
+                        <label class="form-label">字</label>
+                        <input type="text" class="form-control" id="authorCourtesy">
+                    </div>
+                    <div class="col">
+                        <label class="form-label">号</label>
+                        <input type="text" class="form-control" id="authorArt">
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">简介</label>
+                    <textarea class="form-control" id="authorBio" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="deleteAuthorBtn" style="display:none;" onclick="deleteAuthor()">
+                    <i class="fas fa-trash"></i> 删除
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveAuthor()"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加诗词 Modal (管理页) -->
+<div class="modal fade" id="addPoemModalAdmin" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> 添加诗词</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">作者</label>
+                    <select class="form-select" id="adminNewPoemAuthor"><option value="">请先选择作者</option></select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">标题 *</label>
+                    <input type="text" class="form-control" id="adminNewPoemTitle">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">正文</label>
+                    <textarea class="form-control" id="adminNewPoemContent" rows="4"></textarea>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">赏析</label>
+                    <textarea class="form-control" id="adminNewPoemAppreciation" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="addPoemAdmin()"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加受控词条 Modal -->
+<div class="modal fade" id="addVocabModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-tag"></i> 添加词条</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">分类</label>
+                    <select class="form-select" id="vocabCategory">
+                        <option value="theme">主题</option>
+                        <option value="style">风格</option>
+                        <option value="emotion">情感</option>
+                        <option value="imagery">意象</option>
+                        <option value="genre">体裁</option>
+                        <option value="form">形式</option>
+                        <option value="meter">格律</option>
+                        <option value="language_style">语言风格</option>
+                        <option value="season">季节</option>
+                        <option value="festival">节令</option>
+                        <option value="review_status">审核状态</option>
+                        <option value="allusion">典故</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">词条名称 *</label>
+                    <input type="text" class="form-control" id="vocabLabel" placeholder="如：豪放">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveVocab()"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加用户 Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus"></i> 添加用户</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">用户名 *</label>
+                    <input type="text" class="form-control" id="newUserName">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">密码 *</label>
+                    <input type="password" class="form-control" id="newUserPassword">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">角色</label>
+                    <select class="form-select" id="newUserRole">
+                        <option value="user">普通用户</option>
+                        <option value="admin">管理员</option>
+                        <option value="superadmin">超级管理员</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveUser()"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认 Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> 确认删除</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="confirmMessage">确定删除吗？</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn"><i class="fas fa-trash"></i> 确认删除</button>
+            </div>
+        </div>
+    </div>
+</div>

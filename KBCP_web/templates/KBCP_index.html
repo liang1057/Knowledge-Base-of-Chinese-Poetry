@@ -1,0 +1,199 @@
+{% extends "KBCP_base.html" %}
+{% block title %}量身诗词 - 首页{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- 左一: 朝代-诗人树 -->
+    <div class="panel col-tree">
+        <div class="panel-header">
+            <span><i class="fas fa-sitemap"></i> 朝代-诗人</span>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary btn-sm" onclick="expandAllTree()" title="展开">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="collapseAllTree()" title="折叠">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="panel-body" style="overflow:auto;">
+            <div id="dynastyTree"></div>
+        </div>
+    </div>
+
+    <!-- 左二: 诗词列表 -->
+    <div class="panel col-list">
+        <div class="panel-header">
+            <span><i class="fas fa-list"></i> 诗词列表 <small id="currentAuthorHint" style="color:#888;font-weight:normal;"></small></span>
+            <button class="btn btn-sm btn-outline-primary hidden" id="btnAddPoem" onclick="showAddPoemModal()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+        <div class="panel-body" id="poemListContainer">
+            <div class="empty-hint">
+                <i class="fas fa-hand-pointer"></i>
+                <p>请在左侧选择一位诗人</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 左三: 诗词详情 + 编辑器 -->
+    <div class="panel col-detail">
+        <div class="panel-header">
+            <span><i class="fas fa-book-open"></i> 诗词详情</span>
+            <span id="poemMeta" style="font-weight:normal;font-size:13px;color:#888;"></span>
+        </div>
+        <div class="panel-body" style="padding:10px 16px;">
+            <div id="poemEmptyHint" class="empty-hint">
+                <i class="fas fa-hand-pointer"></i>
+                <p>请选择一首诗词</p>
+            </div>
+            <div id="poemDetail" style="display:none;">
+                <!-- 标题作者 -->
+                <div class="poem-title-display" id="poemTitle">-</div>
+                <div class="poem-author-display" id="poemAuthor">-</div>
+
+                <!-- 正文 -->
+                <span>
+                <div class="mb-2 poem-content-section">          <!-- ⭐ 加class -->
+                    <label class="section-label"><i class="fas fa-pen"></i> 正文</label>
+                    <span>
+                    <textarea class="form-control form-control-sm" id="poemContent"
+                              style="font-family:'KaiTi','STKaiti',serif;font-size:1.25rem;
+                                     line-height:1.8;background:#fffbf5;white-space:pre-wrap;min-height: 400px;flex: 1;height: 100%">
+                    </textarea>
+                    </span>
+                </div>
+                </span>
+
+                <!-- 赏析 -->
+                <div class="mb-2 poem-appreciation-section">     <!-- ⭐ 加class -->
+                    <label class="section-label"><i class="fas fa-comment"></i> 赏析</label>
+                    <textarea class="form-control form-control-sm" id="poemAppreciation" style="min-height: 120px;"></textarea>  <!-- ⭐ 去掉rows -->
+                </div>
+
+                <!-- 翻译 -->
+                <div class="mb-2 poem-translation-section">      <!-- ⭐ 加class -->
+                    <label class="section-label"><i class="fas fa-language"></i> 翻译</label>
+                    <textarea class="form-control form-control-sm" id="poemTranslation" style="min-height: 120px;"></textarea>   <!-- ⭐ 去掉rows -->
+                </div>
+
+                <!-- 保存按钮 -->
+                <div class="text-center mt-2 hidden" id="saveSection">
+                    <button class="btn" style="background:#8b4513;color:#fff;" onclick="savePoem()">
+                        <i class="fas fa-save"></i> 保存修改
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 左四: 标签面板 -->
+    <div class="panel col-tags">
+        <div class="panel-header">
+            <span><i class="fas fa-tags"></i> 诗词标签</span>
+        </div>
+        <div class="panel-body" id="tagPanel">
+            <div class="empty-hint" id="tagEmptyHint">
+                <i class="fas fa-tag"></i>
+                <p>选择诗词后显示标签</p>
+            </div>
+            <div id="tagContainer" style="display:none;">
+                <!-- 标签操作按钮 (仅 admin) -->
+                <div class="mb-2 hidden" id="tagActions">
+                    <button class="btn btn-sm btn-outline-primary" onclick="showAddTagModal()">
+                        <i class="fas fa-plus"></i> 增加标签
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="clearAllTags()">
+                        <i class="fas fa-trash-alt"></i> 清除标签
+                    </button>
+                </div>
+                <div id="tagList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加标签 Modal -->
+<div class="modal fade" id="addTagModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-tag"></i> 增加标签</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">选择分类，然后勾选要添加的标签：</p>
+                <div class="row" id="tagSelectorContent">
+                    <!-- 动态渲染 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="confirmAddTags()">
+                    <i class="fas fa-check"></i> 确定添加
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加诗词 Modal -->
+<div class="modal fade" id="addPoemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> 添加诗词</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label">标题 *</label>
+                    <input type="text" class="form-control" id="newPoemTitle" placeholder="请输入诗词标题">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">正文</label>
+                    <textarea class="form-control" id="newPoemContent" rows="4"></textarea>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">赏析</label>
+                    <textarea class="form-control" id="newPoemAppreciation" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="addPoem()">
+                    <i class="fas fa-save"></i> 保存
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认 Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> 确认</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">确定执行此操作？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">
+                    <i class="fas fa-check"></i> 确认
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/KBCP_tree.js') }}"></script>
+<script src="{{ url_for('static', filename='js/KBCP_editor.js') }}"></script>
+{% endblock %}

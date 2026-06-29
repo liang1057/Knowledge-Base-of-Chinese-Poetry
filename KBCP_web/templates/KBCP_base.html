@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}量身诗词{% endblock %}</title>
+
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jsTree -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: #faf8f5;
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* 深色导航栏 (LeonEBook 风格) */
+        .navbar-kbcp {
+            background: #1a1a2e;
+            color: #fff;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .navbar-kbcp h1 { font-size: 18px; margin: 0; }
+        .navbar-kbcp a { color: #ccc; text-decoration: none; font-size: 14px; padding: 4px 10px; border-radius: 4px; }
+        .navbar-kbcp a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .navbar-kbcp .nav-link { color: #ccc; }
+        .navbar-kbcp .user-info { font-size: 13px; color: #aaa; margin-right: 8px; }
+
+        /* 主容器: 四栏 */
+        .main-container {
+            height: calc(100vh - 80px);
+            display: flex;
+            padding: 6px;
+            gap: 6px;
+        }
+        .panel {
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex: 1 1 0;          /* ⭐ 允许拉伸和收缩，基准 0 */
+            min-height: 0;        /* ⭐ 关键：允许 flex item 收缩到 0 */
+        }
+        .panel-header {
+            background: linear-gradient(135deg, #f5f0eb, #fff);
+            border-bottom: 1px solid #e0d5c7;
+            padding: 8px 12px;
+            font-weight: bold;
+            color: #8b4513;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .panel-header i { margin-right: 6px; }
+        .panel-body {
+            flex: 1;
+            overflow: auto;
+            padding: 6px;
+        }
+
+        /* 栏位宽度 */
+        .col-tree { width: 220px; min-width: 220px; }
+        .col-list { width: 300px; min-width: 260px; }
+        .col-detail { flex: 1; min-width: 400px; }
+        .col-tags { width: 280px; min-width: 260px; }
+
+        /* 诗词列表 */
+        .poem-list-item {
+            padding: 6px 10px;
+            border-bottom: 1px solid #f0ebe5;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 14px;
+        }
+        .poem-list-item:hover { background: #faf8f5; }
+        .poem-list-item.active {
+            background: #d4a574;
+            border-left: 3px solid #8b4513;
+            color: #fff;
+        }
+
+        /* 诗词详情 */
+        .poem-title-display {
+            color: #8b4513;
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: "KaiTi", "STKaiti", serif;
+            text-align: center;
+        }
+        .poem-author-display {
+            color: #666;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .poem-author-display::before { content: "—— "; }
+        .poem-author-display::after { content: " ——"; }
+
+        .section-label {
+            font-weight: bold;
+            color: #8b4513;
+            font-size: 14px;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .section-label i { margin-right: 4px; }
+
+        /* 标签 */
+        .tag-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #f5f0eb;
+            border: 1px solid #e0d5c7;
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin: 3px;
+            font-size: 13px;
+            color: #5a3e2b;
+        }
+        .tag-badge .tag-remove {
+            margin-left: 4px;
+            cursor: pointer;
+            color: #c41e3a;
+            font-weight: bold;
+        }
+        .tag-badge .tag-remove:hover { opacity: 0.7; }
+        .tag-category-label {
+            font-size: 12px;
+            color: #8b4513;
+            font-weight: bold;
+            margin-top: 8px;
+            margin-bottom: 2px;
+        }
+
+        /* 空状态 */
+        .empty-hint {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+        .empty-hint i { font-size: 2.5rem; color: #ddd; margin-bottom: 10px; }
+
+        /* 统计栏 */
+        .stats-bar {
+            background: #fff;
+            border-bottom: 1px solid #e0d5c7;
+            padding: 4px 16px;
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            gap: 20px;
+        }
+        .stats-bar i { color: #8b4513; margin-right: 4px; }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d4a574; border-radius: 3px; }
+
+        .hidden { display: none !important; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- 导航栏 -->
+    <div class="navbar-kbcp">
+        <h1><a href="/" style="color:#fff;text-decoration:none;">
+            <i class="fas fa-book-open" style="color:#c41e3a;"></i> 诗词库 v2
+        </a></h1>
+        <div style="display:flex;align-items:center;gap:6px;">
+            <span class="user-info" id="userInfo"></span>
+            <a href="/" class="nav-link"><i class="fas fa-home"></i> 首页</a>
+            <a href="/admin" class="nav-link hidden" id="navAdmin"><i class="fas fa-cog"></i> 管理</a>
+            <a href="/login" class="nav-link" id="navLogin"><i class="fas fa-sign-in-alt"></i> 登录</a>
+            <a href="#" class="nav-link hidden" id="btnLogout"><i class="fas fa-sign-out-alt"></i> 退出</a>
+        </div>
+    </div>
+
+    <!-- 统计栏 -->
+    <div class="stats-bar">
+        <span><i class="fas fa-landmark"></i> <span id="statDynasty">-</span> 朝代</span>
+        <span><i class="fas fa-user"></i> <span id="statAuthor">-</span> 诗人</span>
+        <span><i class="fas fa-scroll"></i> <span id="statPoem">-</span> 诗词</span>
+        <span><i class="fas fa-tags"></i> <span id="statTag">-</span> 标签</span>
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <!-- 第三方 JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
+
+    <script>
+    // 全局认证检查
+    async function checkAuth() {
+        try {
+            const r = await fetch('/api/me');
+            if (r.ok) {
+                const u = await r.json();
+                document.getElementById('userInfo').textContent = `${u.username} (${u.role})`;
+                document.getElementById('navLogin').classList.add('hidden');
+                document.getElementById('btnLogout').classList.remove('hidden');
+                if (u.role === 'admin' || u.role === 'superadmin') {
+                    document.getElementById('navAdmin').classList.remove('hidden');
+                }
+            }
+        } catch(e) {}
+    }
+    document.getElementById('btnLogout')?.addEventListener('click', async e => {
+        e.preventDefault();
+        await fetch('/api/logout', {method:'POST'});
+        window.location.href = '/login';
+    });
+
+    // 加载统计
+    async function loadStats() {
+        try {
+            const r = await fetch('/api/stats');
+            if (r.ok) {
+                const s = await r.json();
+                document.getElementById('statDynasty').textContent = s.dynasty_count;
+                document.getElementById('statAuthor').textContent = s.author_count;
+                document.getElementById('statPoem').textContent = s.poem_count;
+                document.getElementById('statTag').textContent = s.tag_count;
+            }
+        } catch(e) {}
+    }
+
+    $(document).ready(function() {
+        checkAuth();
+        loadStats();
+    });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

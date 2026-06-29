@@ -1,0 +1,68 @@
+{% extends "KBCP_base.html" %}
+{% block title %}量身诗词 - 登录{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:80px;">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header text-center" style="background:linear-gradient(135deg,#f5f0eb,#fff);">
+                    <h5 style="color:#8b4513;margin:0;">
+                        <i class="fas fa-sign-in-alt"></i> 登录
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="loginUsername" placeholder="admin" autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">密码</label>
+                        <input type="password" class="form-control" id="loginPassword" placeholder="admin123"
+                               onkeydown="if(event.key==='Enter') doLogin()">
+                    </div>
+                    <div id="loginError" class="alert alert-danger py-2 hidden"></div>
+                    <button class="btn w-100" style="background:#8b4513;color:#fff;" onclick="doLogin()">
+                        <i class="fas fa-sign-in-alt"></i> 登录
+                    </button>
+                    <p class="text-muted text-center mt-2 small">
+                        默认管理员: admin / admin123
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function doLogin() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+
+    if (!username || !password) {
+        errEl.textContent = '请输入用户名和密码';
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        const r = await fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password}),
+        });
+        const data = await r.json();
+        if (r.ok) {
+            window.location.href = '/';
+        } else {
+            errEl.textContent = data.error || '登录失败';
+            errEl.classList.remove('hidden');
+        }
+    } catch(e) {
+        errEl.textContent = '网络错误';
+        errEl.classList.remove('hidden');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends "KBCP_base.html" %}
+{% block title %}量身诗词 - 管理后台{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="padding:12px;height:calc(100vh - 90px);overflow:auto;">
+    <h4 style="color:#8b4513;border-bottom:2px solid #e0d5c7;padding-bottom:8px;margin-bottom:12px;">
+        <i class="fas fa-cog"></i> 内容管理
+    </h4>
+
+    <!-- Tab 导航 -->
+    <ul class="nav nav-tabs mb-3" id="adminTabs">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabDynasty">朝代</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabAuthor">作者</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPoem">诗词</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabVocab">受控词表</button>
+        </li>
+        {% if session.get('role') == 'superadmin' %}
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabUsers">用户管理</button>
+        </li>
+        {% endif %}
+    </ul>
+
+    <div class="tab-content">
+        <!-- 朝代管理 -->
+        <div class="tab-pane fade show active" id="tabDynasty">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-landmark"></i> 朝代管理</span>
+                    <button class="btn btn-sm btn-primary" onclick="showAddDynastyModal()">
+                        <i class="fas fa-plus"></i> 添加朝代
+                    </button>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead><tr><th>ID</th><th>名称</th><th>起始年</th><th>结束年</th><th>操作</th></tr></thead>
+                        <tbody id="dynastyTableBody">
+                            {% for d in dynasties %}
+                            <tr>
+                                <td>{{ d.dynasty_id }}</td>
+                                <td>{{ d.name }}</td>
+                                <td>{{ d.start_year or '-' }}</td>
+                                <td>{{ d.end_year or '-' }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="editDynasty('{{ d.dynasty_id }}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteDynasty('{{ d.dynasty_id }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 作者管理 -->
+        <div class="tab-pane fade" id="tabAuthor">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-user"></i> 作者管理</span>
+                    <div>
+                        <select class="form-select form-select-sm d-inline-block" style="width:150px;" id="authorFilterDynasty" onchange="loadAuthorList()">
+                            <option value="">全部朝代</option>
+                            {% for d in dynasties %}
+                            <option value="{{ d.dynasty_id }}">{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-sm btn-primary" onclick="showAddAuthorModal()">
+                            <i class="fas fa-plus"></i> 添加作者
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body" id="authorListContainer">
+                    <div class="text-muted text-center py-4">请选择朝代查看作者</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 诗词管理 -->
+        <div class="tab-pane fade" id="tabPoem">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-scroll"></i> 诗词管理</span>
+                    <div>
+                        <select class="form-select form-select-sm d-inline-block" style="width:150px;" id="poemFilterDynasty" onchange="loadPoemAuthors()">
+                            <option value="">选择朝代</option>
+                            {% for d in dynasties %}
+                            <option value="{{ d.dynasty_id }}">{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <select class="form-select form-select-sm d-inline-block" style="width:150px;" id="poemFilterAuthor" onchange="loadPoemList()">
+                            <option value="">选择作者</option>
+                        </select>
+                        <button class="btn btn-sm btn-primary" onclick="showAddPoemModalAdmin()">
+                            <i class="fas fa-plus"></i> 添加诗词
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body" id="poemListContainerAdmin">
+                    <div class="text-muted text-center py-4">请选择朝代和作者</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 受控词表管理 -->
+        <div class="tab-pane fade" id="tabVocab">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-tags"></i> 受控词表</span>
+                    <button class="btn btn-sm btn-primary" onclick="showAddVocabModal()">
+                        <i class="fas fa-plus"></i> 添加词条
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% for cat, count in vocab_categories %}
+                    <div class="mb-3">
+                        <h6 style="color:#8b4513;">{{ category_names.get(cat, cat) }} ({{ count }} 项)
+                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="addVocabToCategory('{{ cat }}')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </h6>
+                        <div id="vocabList_{{ cat }}" class="d-flex flex-wrap gap-1">
+                            <!-- 由 JS 加载 -->
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户管理 (superadmin only) -->
+        {% if session.get('role') == 'superadmin' %}
+        <div class="tab-pane fade" id="tabUsers">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-users-cog"></i> 用户管理</span>
+                    <button class="btn btn-sm btn-primary" onclick="showAddUserModal()">
+                        <i class="fas fa-plus"></i> 添加用户
+                    </button>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead><tr><th>ID</th><th>用户名</th><th>角色</th><th>创建时间</th><th>操作</th></tr></thead>
+                        <tbody id="userTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 各种 Modal -->
+{% include "KBCP_admin_modals.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/KBCP_admin.js') }}"></script>
+{% endblock %}
