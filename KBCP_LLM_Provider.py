@@ -122,7 +122,7 @@ class ZhipuProvider(LLMProvider):
 
     def __init__(self, config_section):
         self.api_key = config_section.get('api_key', '').strip()
-        self.model = config_section.get('model', 'glm-4-flash')
+        self.model = config_section.get('model', 'glm-4.7-flash')
         self.base_url = config_section.get('base_url', self.DEFAULT_BASE_URL)
 
     @property

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 问答 - 量身诗词</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: #faf8f5;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-kbcp {
+            background: #1a1a2e;
+            color: #fff;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            flex-shrink: 0;
+        }
+        .navbar-kbcp h1 { font-size: 18px; margin: 0; }
+        .navbar-kbcp a { color: #ccc; text-decoration: none; font-size: 14px; padding: 4px 10px; border-radius: 4px; }
+        .navbar-kbcp a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .navbar-kbcp .nav-link-active { color: #fff; background: rgba(255,255,255,0.15); }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 10px;
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 10px;
+        }
+        .message {
+            margin-bottom: 16px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            max-width: 90%;
+            line-height: 1.6;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        .message-user {
+            background: #d4a574;
+            color: #fff;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .message-assistant {
+            background: #f5f0eb;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        .message-assistant i { color: #8b4513; margin-right: 6px; }
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+        .message-user .message-time { color: rgba(255,255,255,0.7); text-align: right; }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 8px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+        }
+        .chat-input-area input {
+            flex: 1;
+            border: 1px solid #e0d5c7;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            outline: none;
+        }
+        .chat-input-area input:focus { border-color: #8b4513; }
+        .chat-input-area button {
+            background: #8b4513;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            cursor: pointer;
+        }
+        .chat-input-area button:hover { background: #a0522d; }
+        .chat-input-area button:disabled { background: #ccc; cursor: not-allowed; }
+
+        .welcome-msg {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+        .welcome-msg i { font-size: 2.5rem; color: #ddd; margin-bottom: 10px; }
+        .welcome-msg .examples {
+            font-size: 13px;
+            color: #bbb;
+            margin-top: 10px;
+        }
+        .welcome-msg .examples span { color: #8b4513; cursor: pointer; }
+        .welcome-msg .examples span:hover { text-decoration: underline; }
+
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px 0;
+        }
+        .typing-indicator span {
+            width: 8px; height: 8px;
+            background: #8b4513;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d4a574; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="navbar-kbcp">
+        <h1><a href="/" style="color:#fff;"><i class="fas fa-book-open" style="color:#c41e3a;"></i>量身诗词</a></h1>
+        <div>
+            <a href="/"><i class="fas fa-home"></i> 首页</a>
+            <a href="#" class="nav-link-active"><i class="fas fa-robot"></i> AI 问答</a>
+            <a href="/admin"><i class="fas fa-cog"></i> 管理</a>
+            <a href="/"><i class="fas fa-arrow-left"></i> 返回</a>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-msg" id="welcomeMsg">
+                <i class="fas fa-robot"></i>
+                <p>你好！我是诗词智能助手，你可以问我：</p>
+                <div class="examples">
+                    <p>• <span onclick="askExample(this)">李白是谁？</span></p>
+                    <p>• <span onclick="askExample(this)">李白的诗有哪些？</span></p>
+                    <p>• <span onclick="askExample(this)">描写月亮的诗</span></p>
+                    <p>• <span onclick="askExample(this)">总共有多少首诗</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="questionInput" placeholder="输入你的问题..."
+                   onkeydown="if(event.key==='Enter') sendQuestion()">
+            <button id="sendBtn" onclick="sendQuestion()"><i class="fas fa-paper-plane"></i> 发送</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function addMessage(text, role) {
+            var container = document.getElementById('chatMessages');
+            document.getElementById('welcomeMsg').style.display = 'none';
+
+            var div = document.createElement('div');
+            div.className = 'message message-' + role;
+            var icon = role === 'assistant' ? '<i class="fas fa-robot"></i>' : '';
+            div.innerHTML = icon + text
+                + '<div class="message-time">' + new Date().toLocaleTimeString() + '</div>';
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTyping() {
+            var container = document.getElementById('chatMessages');
+            document.getElementById('welcomeMsg').style.display = 'none';
+            var div = document.createElement('div');
+            div.className = 'message message-assistant';
+            div.id = 'typingIndicator';
+            div.innerHTML = '<i class="fas fa-robot"></i> '
+                + '<div class="typing-indicator">'
+                + '<span></span><span></span><span></span></div>';
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function removeTyping() {
+            var el = document.getElementById('typingIndicator');
+            if (el) el.remove();
+        }
+
+        function sendQuestion() {
+            var input = document.getElementById('questionInput');
+            var btn = document.getElementById('sendBtn');
+            var q = input.value.trim();
+            if (!q) return;
+
+            input.value = '';
+            btn.disabled = true;
+            addMessage(q, 'user');
+            showTyping();
+
+            $.get('/api/ai/ask', {q: q}, function(data) {
+                removeTyping();
+                addMessage(data.answer, 'assistant');
+                btn.disabled = false;
+                input.focus();
+            }).fail(function() {
+                removeTyping();
+                addMessage('请求失败，请稍后重试。', 'assistant');
+                btn.disabled = false;
+            });
+        }
+
+        function askExample(el) {
+            document.getElementById('questionInput').value = el.textContent;
+            sendQuestion();
+        }
+    </script>
+</body>
+</html>

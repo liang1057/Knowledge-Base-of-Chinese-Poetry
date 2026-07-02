@@ -1,5 +1,5 @@
 """
-认证模块 - KBCP 诗词库 v2.0
+认证模块 - KBCP 量身诗词 v2.0
 基于 Flask session + 用户表（raw SQL）
 """
 import uuid

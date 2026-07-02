@@ -47,9 +47,43 @@ function selectPoem(poemId) {
             (data.dynasty_name || '') + ' · ' + (poem.line_count || '?') + '行';
 
         renderTags(currentTags);
+    loadRecommendations(poemId);
     }).fail(function(jqXHR, textStatus, errorThrown) {
         console.error('[selectPoem] API failed:', textStatus, errorThrown, jqXHR.responseText);
         document.getElementById('poemTitle').textContent = '加载失败: ' + (jqXHR.responseJSON ? jqXHR.responseJSON.error : textStatus);
+    });
+}
+
+/* ==================== 相似推荐 ==================== */
+
+function loadRecommendations(poemId) {
+    var section = document.getElementById('recommendSection');
+    var list = document.getElementById('recommendList');
+    if (!section) return;
+
+    section.style.display = 'block';
+    list.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin"></i> 加载中...</span>';
+
+    $.get('/api/ai/recommend', {poem_id: poemId, limit: 5}, function(data) {
+        var recs = data.recommendations;
+        if (!recs || recs.length === 0) {
+            list.innerHTML = '<span class="text-muted">暂无推荐</span>';
+            return;
+        }
+        var html = '';
+        recs.forEach(function(r) {
+            html += '<div style="padding:4px 0;border-bottom:1px solid #f0ebe5;cursor:pointer;"'
+                + ' onclick="selectPoem(\'' + r.poem_id + '\')"'
+                + ' onmouseover="this.style.background=\'#faf8f5\'"'
+                + ' onmouseout="this.style.background=\'transparent\'">'
+                + '<span style="display:inline-block;width:60px;font-size:11px;color:#999;">'
+                + (r.similarity ? (r.similarity * 100).toFixed(0) + '%' : '') + '</span>'
+                + '<span>' + r.dynasty_name + ' ' + r.author_name + '《' + r.title + '》</span>'
+                + '</div>';
+        });
+        list.innerHTML = html;
+    }).fail(function() {
+        list.innerHTML = '<span class="text-muted">推荐服务暂不可用</span>';
     });
 }
 

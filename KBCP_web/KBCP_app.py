@@ -4,8 +4,14 @@ Flask 主程序 - KBCP 诗词库 v2.0
 四栏布局：朝代树 | 诗词列表 | 详情编辑器 | 标签面板
 """
 import os
+import sys
 import json
 import datetime
+
+# 将项目根目录加入导入路径（KBCP_DAL.py / KBCP_Assistant.py 等位于父目录）
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 
@@ -15,6 +21,10 @@ from KBCP_models import db, Dynasty, Author, Poem, Vocab, PoemTag, AuthorTag
 from KBCP_auth import init_users_table, authenticate, login_required, admin_required, superadmin_required
 
 from sqlalchemy import text, func
+
+# AI 功能模块
+from KBCP_Assistant import answer_question, warmup as assistant_warmup
+from KBCP_Recommend import recommend_by_poem
 
 app = Flask(__name__)
 app.config.from_object(config['default'])
@@ -48,6 +58,12 @@ def index():
 @app.route('/login')
 def login():
     return render_template('KBCP_login.html')
+
+
+@app.route('/chat')
+def chat_page():
+    """AI 问答页面"""
+    return render_template('KBCP_chat.html')
 
 
 @app.route('/admin')
@@ -179,7 +195,7 @@ def api_poem_detail():
 
     try:
         poem = Poem.query.get(poem_id)
-        poem.appreciation = poem.description
+        #poem.appreciation = poem.description
         if not poem:
             return jsonify({'error': '诗词不存在'}), 404
 
@@ -685,6 +701,65 @@ def api_user_delete(user_id):
     return jsonify({'status': 'success'})
 
 
+
+# ==================== AI 功能 API ====================
+
+@app.route('/api/ai/ask')
+def api_ai_ask():
+    """RAG 智能问答"""
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify({'error': '缺少问题'}), 400
+    try:
+        answer = answer_question(q)
+        return jsonify({'question': q, 'answer': answer})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+def _dal_for_ai():
+    """创建一个独立 DAL 实例供 AI 路由使用"""
+    import os
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           '..', 'dataset', 'kbcp.db')
+    return SQLiteDAL(db_path=db_path)
+
+
+@app.route('/api/ai/recommend')
+def api_ai_recommend():
+    """语义推荐"""
+    poem_id = request.args.get('poem_id', '').strip()
+    limit = request.args.get('limit', 10, type=int)
+    if not poem_id:
+        return jsonify({'error': '缺少 poem_id'}), 400
+    dal = _dal_for_ai()
+    try:
+        recs = recommend_by_poem(dal, poem_id, top_k=limit)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+    poem = Poem.query.get(poem_id)
+    current = {'poem_id': poem_id, 'title': poem.title if poem else ''}
+    return jsonify({'current': current, 'recommendations': recs})
+
+
+@app.route('/api/ai/portrait/<author_id>')
+def api_ai_portrait(author_id):
+    """诗人风格画像"""
+    dal = _dal_for_ai()
+    try:
+        data = dal.get_poet_portrait_data(author_id)
+        return jsonify(data)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 # ==================== 启动 ====================
 
 if __name__ == '__main__':
@@ -695,8 +770,10 @@ if __name__ == '__main__':
         # 初始化用户表
         init_users_table(db)
 
-    # port = int(os.environ.get('PORT', 8081))
-    # app.run(host='0.0.0.0', port=port, debug=True)
+    # 预热 RAG 索引（首次加载模型需要几秒）
+    print("[启动] 预热 RAG 索引...")
+    import threading
+    threading.Thread(target=assistant_warmup, daemon=True).start()
 
     import sys
     if '--port' in sys.argv:

@@ -365,7 +365,7 @@ def analyze_one(poem, vocab, idx, total, provider):
         resp_text = provider.chat(prompt)
         if resp_text:
             break
-        print(f"    [重试] 第{attempt}次失败，{RETRY_DELAY}s 后重试...")
+        print(f"    [重试] 第{attempt}/{MAX_RETRIES}次失败，{RETRY_DELAY}s 后重试...")
         time.sleep(RETRY_DELAY)
 
     if not resp_text:
