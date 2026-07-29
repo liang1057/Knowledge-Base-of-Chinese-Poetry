@@ -1,0 +1,59 @@
+## 一、元数据如何转化为控制力
+
+| 元数据特性 | 控制手段 | 效果 |
+|-----------|---------|------|
+| 字段中文名+键名对照 | Prompt 中强制映射：用户说"作者"必须映射到 `author.name`，禁止 LLM 臆造字段 | 消灭字段幻觉 |
+| 外键关系明确（`author_id`/`dynasty_id`） | 注入关联规则：查诗人必须 JOIN author，查朝代必须 JOIN dynasty | 消灭表关联错误 |
+| 标签体系（vocab + poem_tag） | 注入检索路径：主题类查询优先走 `poem_tag` 关联 `vocab`，不走 content LIKE | 消灭低效/错误检索 |
+| 别名字段（`aliases`/`other_names`） | 注入实体归一规则：用户输入先过别名表映射到标准名，再生成 SQL | 消灭"子瞻查不到"问题 |
+| 冗余字段（`tag_type`） | 注入过滤规则：标签查询必须带 `tag_type` 条件 | 消灭脏数据干扰 |
+
+---
+
+## 二、关键注入策略（按查询类型）
+
+### 1. 实体检索（诗人/朝代/作品名）
+- **别名映射先行**：用户输入 → 查 `author.other_names`/`poem.aliases`/`dynasty.another_name` → 拿到标准 `name` → 再生成 WHERE
+- **多表 JOIN 模板化**：`poem` 查诗人必须 `JOIN author ON poem.author_id = author.author_id`
+
+### 2. 主题/风格检索
+- **禁止直接 `content LIKE '%春%'`**：优先 `JOIN poem_tag → vocab`，用 `vocab.label` 匹配
+- **标签无命中时降级**：标签表无结果 → 再走 `poem.keywords` → 最后才走 `content` 全文检索
+
+### 3. 统计/对比类
+- **聚合字段白名单**：只允许 `COUNT(poem_id)`、`GROUP BY author.name`，禁止对 text 字段聚合
+- **时间维度统一**：涉及年代必须用 `dynasty.start_year/end_year` 或 `author.birth_year/death_year`，禁止字符串比对
+
+### 4. 关联作品/人物/地点
+- **关系型字段强制解析**：`related_poem_ids`、`people_involved`、`places_involved` 是结构化字段，生成 SQL 时必须用 `FIND_IN_SET` 或规范化查询，禁止直接等值匹配
+
+---
+
+## 三、Prompt 注入模板（核心）
+
+注入内容分三块，缺一不可：
+
+```
+【表结构】（只列字段名+类型，禁止编造）
+【关联规则】（固定 JOIN 路径，如 poem→author 必须经 author_id）
+【检索优先级】（主题查标签 > 关键词 > 全文，别名查映射表 > 标准名）
+【禁止事项】（禁止 SELECT *、禁止 UPDATE/DELETE、禁止对 text 字段 GROUP BY）
+```
+
+---
+
+## 四、自检清单（生成 SQL 后强制过检）
+
+| 校验项 | 标准 | 失败动作 |
+|-------|------|---------|
+| 字段存在性 | 所有字段必须在 myschema.column_name 中 | 阻断，要求修正 |
+| 表关联正确性 | JOIN 条件必须是已定义的外键关系 | 阻断 |
+| 标签查询完整性 | 涉及 vocab 的查询必须 JOIN poem_tag/author_tag | 阻断 |
+| 别名处理 | WHERE 条件中出现的人名/诗名/朝代名，必须确认在别名映射表中 | 阻断或自动映射 |
+| 聚合合规性 | GROUP BY 字段必须在 SELECT 中，聚合函数只用于数值/ID 字段 | 阻断 |
+
+---
+
+## 五、一句话结论
+
+> 元数据完整 = 可以把 Prompt 做成**精确蓝图**。LLM 不再是"猜着写 SQL"，而是"对着蓝图填空"。别名映射、标签优先、关联固化三条规则注入后，直出 SQL 的可用率会大幅提升，复杂查询才需要回退到模板或澄清。

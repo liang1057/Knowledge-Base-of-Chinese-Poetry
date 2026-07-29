@@ -586,13 +586,14 @@ def main():
                         help="限制分析数量 (用于测试)")
     parser.add_argument("-p", "--provider",
                         choices=["ollama", "deepseek", "zhipu"],
-                        default="zhipu",
-                        help="LLM 提供者 (默认使用 KBCP_LLM_config.ini 中的 default)")
+                        default=None,
+                        help="LLM 提供者 (留空则使用 config 中的优先级列表)")
     args = parser.parse_args()
 
     # 加载配置文件
     config = load_config()
-    provider_name = args.provider or config['provider'].get('default', 'ollama')
+    from KBCP_LLM_Provider import get_llm_priority_list
+    provider_name = args.provider or get_llm_priority_list(config)[0]
 
     # 创建 LLM 提供者
     try:

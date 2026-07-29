@@ -15,6 +15,12 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{DB_PATH}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Agent 中枢：是否让 LLM 参与主题词近义扩展
+    #   True  = 主题查询（如"思乡的诗"）时，LLM 将主题词扩展为近义标签集合再召回
+    #   False = 仅用 vocab 表做确定性映射（如 月亮→月），不额外调用 LLM
+    # CLI 模式读不到本配置时，会回退读取 KBCP_LLM_config.ini 的 [agent].llm_near_synonym
+    LLM_NEAR_SYNONYM = True
+
 
 class DevelopmentConfig(Config):
     DEBUG = True

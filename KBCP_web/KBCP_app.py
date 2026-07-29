@@ -7,6 +7,7 @@ import os
 import sys
 import json
 import datetime
+import time
 
 # 将项目根目录加入导入路径（KBCP_DAL.py / KBCP_Assistant.py 等位于父目录）
 _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,6 +24,7 @@ from KBCP_auth import init_users_table, authenticate, login_required, admin_requ
 from sqlalchemy import text, func
 
 # AI 功能模块
+from KBCP_DAL import SQLiteDAL
 from KBCP_Assistant import answer_question, warmup as assistant_warmup
 from KBCP_Recommend import recommend_by_poem
 
@@ -704,19 +706,84 @@ def api_user_delete(user_id):
 
 # ==================== AI 功能 API ====================
 
+def _is_useful_answer(a: str) -> bool:
+    """判断历史回答是否有效（过滤掉失败/空白/错误提示）"""
+    if not a or not a.strip():
+        return False
+    s = a.strip()
+    if s.startswith('（') or s.startswith('所有 LLM') or s.startswith('所有 Agent') or s.startswith('未配置'):
+        return False
+    return True
+
+
 @app.route('/api/ai/ask')
 def api_ai_ask():
-    """RAG 智能问答"""
+    """RAG 智能问答（带多轮对话记忆）"""
     q = request.args.get('q', '').strip()
     if not q:
         return jsonify({'error': '缺少问题'}), 400
+
+    # 从 session 读取历史
+    history = session.get('chat_history', [])
+    if not isinstance(history, list):
+        history = []
+
     try:
-        answer = answer_question(q)
-        return jsonify({'question': q, 'answer': answer})
+        # 清洗并过滤历史：丢弃失败/空回答，避免污染模型上下文
+        history_for_ai = []
+        import re as _re
+        for entry in history:
+            a = entry.get('a', '')
+            a = _re.sub(r'⏱\s*[\d.]+s', '', a).strip()
+            if not _is_useful_answer(a):
+                continue  # 跳过失败/空白的历史记录
+            history_for_ai.append({
+                'q': entry.get('q', ''),
+                'a': a,
+                'entity': entry.get('entity', ''),
+            })
+
+        t0 = time.time()
+        answer = answer_question(
+            q,
+            history=history_for_ai,
+            llm_near_synonym=config['default'].LLM_NEAR_SYNONYM,
+        )
+        elapsed = round(time.time() - t0, 1)
+
+        # 提取本轮实体并存入历史
+        from KBCP_AliasMapper import AliasMapper
+        mapper = AliasMapper()
+        alias_result = mapper.resolve(q)
+        entity = ''
+        if alias_result.get('matches'):
+            for orig, std, etype, eid in alias_result['matches']:
+                if etype in ('author', 'poem'):
+                    entity = std
+                    break
+
+        # 保存到 session 历史（最多保留 10 轮）
+        history.append({
+            'q': q,
+            'a': answer[:500],
+            'entity': entity,
+        })
+        if len(history) > 10:
+            history = history[-10:]
+        session['chat_history'] = history
+
+        return jsonify({'question': q, 'answer': answer, 'elapsed': elapsed})
     except Exception as e:
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/ai/clear_history')
+def api_ai_clear_history():
+    """清空当前会话的对话历史"""
+    session.pop('chat_history', None)
+    return jsonify({'status': 'ok', 'message': '对话历史已清空'})
 
 
 def _dal_for_ai():

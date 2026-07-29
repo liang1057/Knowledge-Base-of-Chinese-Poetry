@@ -442,6 +442,87 @@ class SQLiteDAL(DALBase):
         poem.tags = [t.to_dict() for t in tags]
         return poem
 
+    # ---------- 新增：按名称/别名检索（供 SQLAssist 使用） ----------
+
+    def get_author_by_name(self, name: str) -> Optional[AuthorData]:
+        """按标准名精确查作者"""
+        row = self._fetchone(
+            "SELECT a.*, d.name AS dynasty_name "
+            "FROM author a LEFT JOIN dynasty d ON a.dynasty_id = d.dynasty_id "
+            "WHERE a.name = ?", (name,)
+        )
+        if not row:
+            return None
+        return AuthorData(**row)
+
+    def get_author_by_alias(self, alias: str) -> List[AuthorData]:
+        """按别名模糊查作者（匹配 other_names/courtesy_name/art_name）"""
+        like = f'%{alias}%'
+        rows = self._fetchall(
+            "SELECT a.*, d.name AS dynasty_name "
+            "FROM author a LEFT JOIN dynasty d ON a.dynasty_id = d.dynasty_id "
+            "WHERE a.name LIKE ? OR a.courtesy_name LIKE ? "
+            "   OR a.art_name LIKE ? OR a.other_names LIKE ? "
+            "LIMIT 10",
+            (like, like, like, like)
+        )
+        return [AuthorData(**r) for r in rows]
+
+    def get_poems_by_title(self, title: str) -> List[PoemData]:
+        """按标题精确查诗词"""
+        rows = self._fetchall(
+            "SELECT p.*, a.name AS author_name, d.name AS dynasty_name "
+            "FROM poem p "
+            "LEFT JOIN author a ON p.author_id = a.author_id "
+            "LEFT JOIN dynasty d ON p.dynasty_id = d.dynasty_id "
+            "WHERE p.title = ? ORDER BY p.poem_id", (title,)
+        )
+        return [PoemData(**r) for r in rows]
+
+    def search_poems_exact(self, content: str, limit: int = 5) -> List[dict]:
+        """精确匹配诗句内容（用于 FIND_POEM 查询）"""
+        like = f'%{content}%'
+        rows = self._fetchall(
+            "SELECT p.poem_id, p.title, p.content, "
+            "       a.name AS author_name, d.name AS dynasty_name "
+            "FROM poem p "
+            "LEFT JOIN author a ON p.author_id = a.author_id "
+            "LEFT JOIN dynasty d ON p.dynasty_id = d.dynasty_id "
+            "WHERE p.content LIKE ? "
+            "LIMIT ?", (like, limit)
+        )
+        return rows
+
+    def get_schema_metadata(self) -> List[dict]:
+        """读取 myschema 表的所有记录"""
+        return self._fetchall(
+            "SELECT * FROM myschema ORDER BY table_name, column_label"
+        )
+
+    def execute_readonly_sql(self, sql: str, params: tuple = None,
+                             max_rows: int = 100) -> dict:
+        """
+        安全的只读 SQL 执行沙箱。
+        仅允许 SELECT，禁止任何写操作。
+        返回: {"success": bool, "columns": [...], "rows": [...], "error": str}
+        """
+        sql_strip = sql.strip().upper()
+        if not sql_strip.startswith('SELECT'):
+            return {"success": False, "error": "只允许 SELECT 查询"}
+
+        conn = self._get_conn()
+        try:
+            cur = conn.execute(sql, params or ())
+            col_names = [desc[0] for desc in cur.description]
+            rows = [dict(r) for r in cur.fetchmany(max_rows)]
+            return {"success": True, "columns": col_names,
+                    "rows": rows, "error": None}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+        finally:
+            if not hasattr(self, '_session'):
+                conn.close()
+
     # ---------- 向量支持 ----------
 
     def get_poems_for_embedding(self, limit: Optional[int] = None,
